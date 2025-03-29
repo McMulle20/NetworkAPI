@@ -1,7 +1,7 @@
+//src/controllers/thoughtController.ts
 import { Request, Response } from 'express';
 import { Types } from 'mongoose';
-import Thought from '../models/Thought'; // Import the Thought model
-import User from '../models/User'; // Import the User model
+import { User, Thought } from '../models';
 
 // Create a new thought
 export const createThought = async (req: Request, res: Response): Promise<Response> => {
@@ -84,25 +84,29 @@ export const updateThought = async (req: Request, res: Response): Promise<Respon
 // Delete a thought
 export const deleteThought = async (req: Request, res: Response): Promise<Response> => {
     try {
-        const { thoughtId } = req.params;
-
-        // Find and delete the thought
-        const deletedThought = await Thought.findByIdAndDelete(thoughtId);
-
-        if (!deletedThought) {
-            return res.status(404).json({ message: 'Thought not found' });
-        }
-
-        // Remove the thought from the associated user's thoughts array
-        const user = await User.findOne({ thoughts: thoughtId });
-        if (user) {
-            // Using the `pull` method to safely remove the thought from the user's array
-            user.thoughts.pull(thoughtId); // Pull the thoughtId from the thoughts array
-            await user.save(); // Save the user document after modifying the thoughts array
-        }
-
-        return res.status(200).json({ message: 'Thought deleted successfully' });
+      const { thoughtId } = req.params;  // Extract thoughtId from params
+  
+      // Step 1: Delete the thought document
+      const deletedThought = await Thought.findByIdAndDelete(thoughtId);
+      if (!deletedThought) {
+        return res.status(404).json({ message: 'Thought not found' });
+      }
+  
+      // Step 2: Remove the thoughtId reference from the user's thoughts array
+      const updatedUser = await User.findOneAndUpdate(
+        { thoughts: thoughtId },  // Find user who has the thoughtId in their array
+        { $pull: { thoughts: thoughtId } },  // Safely remove the thoughtId from the thoughts array
+        { new: true }  // Return the updated user document
+      );
+  
+      if (!updatedUser) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+  
+      // Step 3: Return success response
+      return res.status(200).json({ message: 'Thought deleted successfully', updatedUser });
     } catch (error) {
-        return res.status(500).json({ message: 'Server error', error });
+      console.error(error);
+      return res.status(500).json({ message: 'Server error', error });
     }
-};
+  };

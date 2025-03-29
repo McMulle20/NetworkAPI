@@ -1,23 +1,14 @@
 import express from 'express';
-import routes from './routes/index';
-import db from './config/connection';  // Correct way to import a TypeScript file
+import routes from './routes/index'; // Make sure 'routes/index' is correctly imported  // Correct path to the routes
 
-
-// Connect to the database
-await db();
-
-// Hard-code the port to 3001 (or any port you'd like)
-const PORT = 3001;
 const app = express();
 
-// Middleware to handle URL encoding and JSON
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json());
+app.use(express.json());  // Middleware to parse JSON bodies
 
-// Use routes
-app.use(routes);
+// Mount the routes at /api/thoughts
+app.use('/api/thoughts', routes);
 
-// Start the server and listen on the specified port
+const PORT = 5000;
 app.listen(PORT, () => {
-  console.log(`API server running on port ${PORT}!`);
+  console.log(`Server running on port ${PORT}`);
 });
