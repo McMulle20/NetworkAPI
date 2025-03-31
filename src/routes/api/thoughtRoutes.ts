@@ -1,13 +1,25 @@
-import express from 'express';
-import { createThought, getUserThoughts, getThoughtById, updateThought, deleteThought } from '../../controllers/thoughtController';
+//src/routes/api/thoughtRoutes.ts
+import { Router } from 'express';
+const router = Router();
 
-const router = express.Router();
+import {createThought, updateThought, deleteThought, getThoughts, getThoughtId, addReaction, deleteReaction  } from '../../controllers/thoughtController.js';
 
 // Thought Routes
-router.post('/users/:userId/thoughts', createThought);
-router.get('/users/:userId/thoughts', getUserThoughts);
-router.get('/thoughts/:thoughtId', getThoughtById);
-router.put('/thoughts/:thoughtId', updateThought);
-router.delete('/thoughts/:thoughtId', deleteThought);
+router.route('/') 
+    .get(getThoughts) //Get all thoughts
+    .post(createThought); //Create new thought
+
+router
+  .route('/:thoughtId')
+    .get(getThoughtId) //Get single thought by ID
+    .put(updateThought) //Update a thought
+    .delete(deleteThought); //Delete a thought
+
+//Reaction routes
+router.route('/:thoughtId/reactions')
+    .post(addReaction); //Add a reaction
+
+router.route('/:thoughtId/reactions/:reactionId')
+.delete(deleteReaction); //Delete a specified Reaction
 
 export default router;
